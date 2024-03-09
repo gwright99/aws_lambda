@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: lambda
+  name: lambda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lambda
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: lambda
+    spec:
+      containers:
+      - image: gwright99/lambda_py3.11:base
+        name: lambda-py3-11-ml8l4
+        ports:
+        - containerPort: 8080
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: lambda
+  name: lambda
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: lambda
+status:
+  loadBalancer: {}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    example: lambda
+  name: lambda
+  namespace: httpbin
+spec:
+  hostnames:
+  - lambda.grahamwrightk8s.net
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: public-cloudflare
+    namespace: gloo-system
+  rules:
+  - backendRefs:
+    - group: ""
+      kind: Service
+      name: lambda
+      port: 8080
+      weight: 1
+    matches:
+    - path:
+        type: PathPrefix
+        value: /

@@ -25,10 +25,12 @@ RUN mkdir -p aws-lambda-rie && \
 
 COPY entry_script.sh .
 COPY requirements.txt .
-COPY app.py "${LAMBDA_TASK_ROOT}"
 
 RUN pip3 install -r requirements.txt --target . && \
     chmod +x entry_script.sh
+
+# To minimize the redownload of Python packages when all I've done is change application code.
+COPY app.py "${LAMBDA_TASK_ROOT}"
 
 ENTRYPOINT [ "./entry_script.sh" ]
 CMD [ "app.handler" ]
