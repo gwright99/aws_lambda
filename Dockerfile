@@ -6,7 +6,6 @@ ARG LAMBDA_TASK_ROOT=/var/task
 # Getting "This environment is externally managed" error when trying `pip3 install <PACKAGE>`
 # https://stackoverflow.com/questions/75608323/how-do-i-solve-error-externally-managed-environment-every-time-i-use-pip-3
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
-ENV LAMBDA_TASK_ROOT=${LAMBDA_TASK_ROOT}
 
 RUN mkdir -p "${LAMBDA_TASK_ROOT}"
 WORKDIR "${LAMBDA_TASK_ROOT}"
@@ -36,5 +35,6 @@ RUN pip3 install -r requirements.txt --target . && \
 # To minimize the redownload of Python packages when all I've done is change application code.
 COPY app.py "${LAMBDA_TASK_ROOT}"
 
-ENTRYPOINT [ "/bin/bash", "$LAMBDA_TASK_ROOT/entry_script.sh" ]
+# Hardcoding just to get it working.
+ENTRYPOINT [ "/bin/bash", "/var/task/entry_script.sh" ]
 CMD [ "app.handler" ]

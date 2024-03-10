@@ -40,9 +40,22 @@ spec:
         volumeMounts:
         - name: repo-content
           mountPath: /app
+      # Copy the content of WORKDIR to same folder as the git repo
+      - image: gwright99/lambda_py3.11:base
+        name: app-to-git
+        command: ["/bin/bash"]
+        args: ["-c", "cp -a ./ /tmp/code"]
+        volumeMounts:
+        - name: repo-content
+          mountPath: /tmp/code
+        resources: {}
+      volumes:
+        - name: repo-content
+          emptyDir: {}
+
       containers:
       - image: gwright99/lambda_py3.11:base
-        name: lambda-py3-11-ml8l4
+        name: lambda-py3-11
         # command: ["sleep", "300"]
         ports:
         - containerPort: 8080
