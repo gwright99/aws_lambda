@@ -12,7 +12,7 @@ WORKDIR "${LAMBDA_TASK_ROOT}"
 
 RUN apt update -y && \
     # apt upgrade -y && \ 
-    apt install --no-install-recommends -y python3.11 python3-pip curl ca-certificates && \
+    apt install --no-install-recommends -y python3.11 python3-pip curl ca-certificates git && \
     # Make the python3.11 executable available via python3
     update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
     rm -rf /var/lib/apt/lists/*
@@ -29,8 +29,8 @@ RUN mkdir -p /aws-lambda-rie && \
 COPY entry_script.sh .
 COPY requirements.txt .
 
-RUN pip3 install -r requirements.txt --target . && \
-    chmod +x entry_script.sh
+# RUN pip3 install -r requirements.txt --target . && chmod +x entry_script.sh
+RUN pip3 install -r requirements.txt && chmod +x entry_script.sh
 
 # To minimize the redownload of Python packages when all I've done is change application code.
 COPY app.py "${LAMBDA_TASK_ROOT}"
