@@ -5,6 +5,7 @@ metadata:
   labels:
     app: lambda
   name: lambda
+  namespace: support-backlog
 spec:
   replicas: 1
   selector:
@@ -16,14 +17,42 @@ spec:
       creationTimestamp: null
       labels:
         app: lambda
+      namespace: support-backlog
     spec:
+      initContainers:
+      - name: git-clone
+        image: alpine/git
+        # https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#use-environment-variables-to-define-arguments
+        # command: ["git", "clone", "https://$(CR_USER):$(CR_PAT)@github.com/gwright99/aws_lambda.git", "/app"]
+        command: ["/bin/sh"]
+        args: ["-c", "git clone https://$(CR_USER):$(CR_PAT)@github.com/gwright99/aws_lambda.git /app  && chmod +x /app/entry_script.sh"]
+        env:
+          - name: CR_USER
+            valueFrom:
+              secretKeyRef:
+                name: gh-pat
+                key: cr_user
+          - name: CR_PAT
+            valueFrom:
+              secretKeyRef:
+                name: gh-pat
+                key: cr_pat
+        volumeMounts:
+        - name: repo-content
+          mountPath: /app
       containers:
       - image: gwright99/lambda_py3.11:base
         name: lambda-py3-11-ml8l4
+        # command: ["sleep", "300"]
         ports:
         - containerPort: 8080
+        volumeMounts:
+        - name: repo-content
+          mountPath: /var/task
         resources: {}
-status: {}
+      volumes:
+        - name: repo-content
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -32,6 +61,7 @@ metadata:
   labels:
     app: lambda
   name: lambda
+  namespace: support-backlog
 spec:
   ports:
   - port: 8080
@@ -48,7 +78,7 @@ metadata:
   labels:
     example: lambda
   name: lambda
-  namespace: httpbin
+  namespace: support-backlog
 spec:
   hostnames:
   - lambda.grahamwrightk8s.net

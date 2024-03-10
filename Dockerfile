@@ -6,6 +6,7 @@ ARG LAMBDA_TASK_ROOT=/var/task
 # Getting "This environment is externally managed" error when trying `pip3 install <PACKAGE>`
 # https://stackoverflow.com/questions/75608323/how-do-i-solve-error-externally-managed-environment-every-time-i-use-pip-3
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
+ENV LAMBDA_TASK_ROOT=${LAMBDA_TASK_ROOT}
 
 RUN mkdir -p "${LAMBDA_TASK_ROOT}"
 WORKDIR "${LAMBDA_TASK_ROOT}"
@@ -19,9 +20,12 @@ RUN apt update -y && \
 
 # https://github.com/aws/aws-lambda-python-runtime-interface-client/?tab=readme-ov-file#usage
 # Local testing: https://pypi.org/project/awslambdaric/
-RUN mkdir -p aws-lambda-rie && \
-    curl -Lo aws-lambda-rie/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
-    chmod +x aws-lambda-rie/aws-lambda-rie
+# RUN mkdir -p aws-lambda-rie && \
+#     curl -Lo aws-lambda-rie/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
+#     chmod +x aws-lambda-rie/aws-lambda-rie
+RUN mkdir -p /tmp/aws-lambda-rie && \
+    curl -Lo /tmp/aws-lambda-rie/aws-lambda-rie https://github.com/aws/aws-lambda-runtime-interface-emulator/releases/latest/download/aws-lambda-rie && \
+    chmod +x /tmp/aws-lambda-rie/aws-lambda-rie
 
 COPY entry_script.sh .
 COPY requirements.txt .
@@ -32,5 +36,5 @@ RUN pip3 install -r requirements.txt --target . && \
 # To minimize the redownload of Python packages when all I've done is change application code.
 COPY app.py "${LAMBDA_TASK_ROOT}"
 
-ENTRYPOINT [ "./entry_script.sh" ]
+ENTRYPOINT [ "/bin/bash", "$LAMBDA_TASK_ROOT/entry_script.sh" ]
 CMD [ "app.handler" ]
