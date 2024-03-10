@@ -8,7 +8,7 @@ if [ -z "${AWS_LAMBDA_RUNTIME_API}" ]; then
 
   # Cant volume mount the GH repo from initcontainer in K8s if I have no repo stuff stored in here. Move RIE elsewhere.
   # exec /var/task/aws-lambda-rie/aws-lambda-rie /usr/bin/python3 -m awslambdaric "$@"
-   exec /tmp/aws-lambda-rie/aws-lambda-rie /usr/bin/python3 -m awslambdaric "$@"
+   exec /aws-lambda-rie/aws-lambda-rie /usr/bin/python3 -m awslambdaric "$@"
 else
   exec /usr/bin/python3 -m awslambdaric "$@"
 fi
