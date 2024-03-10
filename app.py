@@ -2,13 +2,18 @@ def handler(event, context):
     ''' The first function to be invoked by Lambda '''
     print("hello!")
 
-    json_data = [{"Dp_Record_Id": 2, 
-                  "DP_TYPE": "NSDL",
-                  "DP_ID": "40877589", 
-                  "CLIENT_ID": "1232", 
-                  "Default_flag": "Y"}]
+    expected_response = {
+        "statusCode": 201,
+        "headers": {
+            "Content-Type": "application/json",
+            "My-Custom-Header": "Custom Value"
+        },
+        "body": "{ \"message\": \"Hello, world!\" }",
+        "cookies": [
+            "Cookie_1=Value1; Expires=21 Oct 2021 07:48 GMT",
+            "Cookie_2=Value2; Max-Age=78000"
+        ],
+        "isBase64Encoded": False
+    }
 
-    return {
-        "statusCode": 200,
-        "body": json_data
-    }  
+    return expected_response 
