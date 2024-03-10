@@ -25,6 +25,6 @@ kubectl expose deployment lambda --port=8080 --target-port=8080 --dry-run=client
 # From an NGINX pod
 curl -XPOST "http://lambda:8080/2015-03-31/functions/function/invocations" -d '{}' --verbose
 curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{}' --verbose
-curl "https://lambda.grahamwrightk8s.net/2015-03-31/functions/function/invocations" -d '{}'
+curl -XPOST "https://lambda.grahamwrightk8s.net/2015-03-31/functions/function/invocations" -d '{}' --verbose
 
 ```

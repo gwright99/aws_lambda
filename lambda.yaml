@@ -14,47 +14,10 @@ spec:
   strategy: {}
   template:
     metadata:
-      creationTimestamp: null
       labels:
         app: lambda
       namespace: support-backlog
     spec:
-      # initContainers:
-      # - name: git-clone
-      #   image: alpine/git
-      #   # https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#use-environment-variables-to-define-arguments
-      #   # command: ["git", "clone", "https://$(CR_USER):$(CR_PAT)@github.com/gwright99/aws_lambda.git", "/app"]
-      #   command: ["/bin/sh"]
-      #   args: ["-c", "git clone https://$(CR_USER):$(CR_PAT)@github.com/gwright99/aws_lambda.git /app  && chmod +x /app/entry_script.sh"]
-      #   env:
-      #     - name: CR_USER
-      #       valueFrom:
-      #         secretKeyRef:
-      #           name: gh-pat
-      #           key: cr_user
-      #     - name: CR_PAT
-      #       valueFrom:
-      #         secretKeyRef:
-      #           name: gh-pat
-      #           key: cr_pat
-      #   volumeMounts:
-      #   - name: repo-content
-      #     mountPath: /app
-
-      # # Copy the content of WORKDIR to same folder as the git repo
-      # - image: gwright99/lambda_py3.11:base
-      #   name: app-to-git
-      #   command: ["/bin/bash"]
-      #   #args: ["-c", "cp -a ./ /tmp/code"]
-      #   args: ["-c", "cp -a /var/task/. /tmp/code"]
-      #   volumeMounts:
-      #   - name: repo-content
-      #     mountPath: /tmp/code
-      #   resources: {}
-      # volumes:
-      #   - name: repo-content
-      #     emptyDir: {}
-
       containers:
       - image: gwright99/lambda_py3.11:base
         name: lambda-py3-11
@@ -72,13 +35,37 @@ spec:
               secretKeyRef:
                 name: gh-pat
                 key: cr_pat
-      #   volumeMounts:
-      #   - name: repo-content
-      #     mountPath: /var/task
-      #   resources: {}
-      # volumes:
-      #   - name: repo-content
-      #     emptyDir: {}
+
+      - image: nginx:latest
+        name: mynginx
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+          - name: nginx-message
+            mountPath: /usr/share/nginx/html/
+      
+      # https://pwittrock.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/
+      volumes:
+        - name: nginx-message
+          configMap:
+            name: nginx-message
+            items:
+              - key: index.html
+                path: index.html
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-message
+  namespace: support-backlog
+data:
+  index.html: |
+    <html>
+    <h1>Please use POST methods to call the Lambda function</h1>
+    </br>
+    <p>You tried to call this Lambda function with an HTTP GET method (likely from your browser).
+    The Lambda handler expects requests to be sent as HTTP POST. Please try again.</p>
+    </html>
 ---
 apiVersion: v1
 kind: Service
@@ -98,6 +85,25 @@ spec:
 status:
   loadBalancer: {}
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  creationTimestamp: null
+  labels:
+    app: lambda
+  name: lambda-mynginx
+  namespace: support-backlog
+spec:
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: lambda
+status:
+  loadBalancer: {}
+---
+# Cheating -- to handle GETS to Lambda (which only handles POSTS) just redirect to nginx.
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
@@ -114,13 +120,29 @@ spec:
     name: public-cloudflare
     namespace: gloo-system
   rules:
-  - backendRefs:
-    - group: ""
-      kind: Service
-      name: lambda
-      port: 8080
-      weight: 1
-    matches:
-    - path:
-        type: PathPrefix
-        value: /
+  # Redirect Lambda elsewhere
+    - matches:
+      # - method: "GET"
+      # backendRefs:
+      #   - name: mynginx
+      #     kind: Service
+      #     group: ""
+      #     port: 8000
+      #     #weight: 1
+      - method: "GET"
+      backendRefs:
+        - name: lambda-mynginx
+          kind: Service
+          group: ""
+          port: 8000
+          #weight: 1
+
+    # Actual code
+    - matches:
+      - method: "POST"
+      backendRefs:
+        - name: lambda
+          kind: Service
+          group: ""
+          port: 8080
+          #weight: 1
