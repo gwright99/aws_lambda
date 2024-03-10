@@ -8,10 +8,7 @@ def handler(event, context):
                   "CLIENT_ID": "1232", 
                   "Default_flag": "Y"}]
 
-    return {'statusCode': 200,
-            'headers': {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": 'GET, POST, PUT, DELETE, OPTIONS'
-            },
-            'body': json_data
-        }  
+    return {
+        "statusCode": 200,
+        "body": json_data
+    }  
