@@ -16,4 +16,6 @@ def handler(event, context):
         "isBase64Encoded": False
     }
 
+    print("Hello2")
+
     return expected_response 
