@@ -5,7 +5,7 @@ metadata:
   labels:
     app: lambda
   name: lambda
-  namespace: support-backlog
+  namespace: lambda
 spec:
   replicas: 1
   selector:
@@ -16,7 +16,7 @@ spec:
     metadata:
       labels:
         app: lambda
-      namespace: support-backlog
+      namespace: lambda
     spec:
       containers:
       - image: gwright99/lambda_py3.11:base
@@ -57,7 +57,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-message
-  namespace: support-backlog
+  namespace: lambda
 data:
   index.html: |
     <html>
@@ -74,7 +74,7 @@ metadata:
   labels:
     app: lambda
   name: lambda
-  namespace: support-backlog
+  namespace: lambda
 spec:
   ports:
   - port: 8080
@@ -92,7 +92,7 @@ metadata:
   labels:
     app: lambda
   name: lambda-mynginx
-  namespace: support-backlog
+  namespace: lambda
 spec:
   ports:
   - port: 8000
@@ -110,7 +110,7 @@ metadata:
   labels:
     example: lambda
   name: lambda
-  namespace: support-backlog
+  namespace: lambda
 spec:
   hostnames:
   - lambda.grahamwrightk8s.net
