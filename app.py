@@ -23,5 +23,6 @@ def handler(event, context):
     print("Hello6")
     print("Hello7")
     print("Hello9")
+    print("Hello10")
 
     return expected_response 
