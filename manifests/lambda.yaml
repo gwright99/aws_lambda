@@ -6,7 +6,6 @@ metadata:
     app: lambda
   name: lambda
   namespace: lambda
-  argotrigger: 1
 spec:
   replicas: 1
   selector:
