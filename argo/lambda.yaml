@@ -20,4 +20,31 @@ spec:
     automated:
       selfHeal: true
       #prune: true           # Delete and replace
-      replace: true
+      # replace: true        # Causes outOfSync issues
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: deletelambda
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  template:
+    spec:
+      containers:
+      - name: deletelambda
+        image: nginx:latest
+        command: ["/bin/bash"]
+        args: ["-c", "/purge.sh"]
+        volumeMounts:
+          - name: purgescript
+            mountPath: /
+      volumes:
+        - name: purgescript
+          configMap:
+            name: purgescript
+            items:
+              - key: purge.sh
+                path: purge.sh
+      restartPolicy: Never
