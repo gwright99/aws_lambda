@@ -29,6 +29,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  namespace: lambda
 spec:
   template:
     spec:
@@ -36,13 +37,14 @@ spec:
       - name: deletelambda
         image: nginx:latest
         command: ["/bin/bash"]
-        args: ["-c", "/purge.sh"]
+        args: ["-c", "chmod +x /tmp/purge.sh && bash /tmp/purge.sh"]
         volumeMounts:
           - name: purgescript
-            mountPath: /
+            mountPath: /tmp/
       volumes:
         - name: purgescript
           configMap:
+            defaultMode: 0777   # To defeat ReadOnly
             name: purgescript
             items:
               - key: purge.sh
