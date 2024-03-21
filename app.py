@@ -24,5 +24,6 @@ def handler(event, context):
     print("Hello7")
     print("Hello9")
     print("Hello10")
+    print("Hello11")
 
     return expected_response 
