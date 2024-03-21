@@ -46,3 +46,4 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
     2. Create an ArgoCD [Resource Hook](https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/) definition in `manifests/resource_hook.yaml`. This creates a Job which leverages a serviec account and purgescript (created in `manifests/sa_delete.yaml`) to query the K8s API and delete a pod with the name `lambda*`.
 
     3. Make a change to a file(s) in the repository, add, and commit. The updated `manifests/trigger_argo_refresh.yaml` will tag along for the ride.
+
