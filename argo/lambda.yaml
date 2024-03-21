@@ -25,7 +25,7 @@ spec:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: deletelambda
+  generateName: deletepod   # CANT BE CALLED LAMBDA OR BREAKS my `purgescript` grep logic
   annotations:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: HookSucceeded
@@ -33,14 +33,15 @@ metadata:
 spec:
   template:
     spec:
+      serviceAccountName: deletelambda
       containers:
       - name: deletelambda
         image: nginx:latest
         command: ["/bin/bash"]
-        args: ["-c", "chmod +x /tmp/purge.sh && bash /tmp/purge.sh"]
+        args: ["-c", "/tmp/purge/purge.sh"]
         volumeMounts:
           - name: purgescript
-            mountPath: /tmp/
+            mountPath: /tmp/purge/
       volumes:
         - name: purgescript
           configMap:

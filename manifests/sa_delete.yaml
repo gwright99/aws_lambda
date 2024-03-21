@@ -46,5 +46,10 @@ data:
     TOKEN=$(cat ${SERVICEACCOUNT}/token)
     CACERT=${SERVICEACCOUNT}/ca.crt
 
+    sleep 5
+    jq --version
+
     CONTAINERNAME=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods | jq '.items[].metadata.name' | echo $(grep lambda) | xargs)
+    sleep 5
+    echo $CONTAINERNAME
     curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME
