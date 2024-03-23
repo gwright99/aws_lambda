@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigger
+echo $(date) > manifests/trigger_argo_refresh2.yaml
+git add manifests/trigger_argo_refresh2.yaml 
