@@ -35,7 +35,7 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
 
 1. The ArgoCD Application pointing towards this repo watches for changes in the `/manifests` folder, but the code I'll be deploying is in the rest of the repository. To force the update:
 
-    1. Create a git pre-commit hook in `.git/hooks/pre-commit`. **NOTE: ** I have to write it out here because there [doesn't seem to be a clean way to track the damn thing](https://stackoverflow.com/questions/427207/can-git-hook-scripts-be-managed-along-with-the-repository).
+    1. Create a git pre-commit hook in `.git/hooks/pre-commit`. **NOTE: ** I have to write it out here because there [doesn't seem to be a clean way to track the damn thing](https://stackoverflow.com/questions/427207/can-git-hook-scripts-be-managed-along-with-the-repository) -- (moved pre-commit to `.githooks` via ` git config core.hooksPath .githooks`)
         ```bash
         #!/bin/bash
         # Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigger
