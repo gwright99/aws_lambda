@@ -9,7 +9,7 @@ cat << EOF > manifests/argocd_dummy_trigger.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: argocd_dummy_trigger
+  name: argocd-dummy-trigger
   namespace: lambda
 data:
   foo: "$(date)"
