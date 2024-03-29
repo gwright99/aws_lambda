@@ -27,6 +27,9 @@ curl -XPOST "http://lambda:8080/2015-03-31/functions/function/invocations" -d '{
 curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{}' --verbose
 curl -XPOST "https://lambda.grahamwrightk8s.net/2015-03-31/functions/function/invocations" -d '{}' --verbose
 
+# Modified the HTTPRoute so that easy-to-remember URL is converted behind-the-scenes
+curl -XPOST "https://lambda.grahamwrightk8s.net/test" -d '{}' --verbose
+# goes to "https://lambda.grahamwrightk8s.net/2015-03-31/functions/function/invocations"
 ```
 
 ## Infrastructure

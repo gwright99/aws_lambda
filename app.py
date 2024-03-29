@@ -19,6 +19,6 @@ def handler(event, context):
     print("Hello2")
     print("Hello3")
     print("Hello31")
-
+    print("Hello HTTPRoute short URL")
 
     return expected_response 

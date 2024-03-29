@@ -133,8 +133,10 @@ spec:
 
     # Actual code
     - matches:
-      # - method: "POST"
-      - path:                 # <--- new start. Works when method: POST not active
+      # Composite match (POST + Prefix)
+      # Example: https://gateway-api.sigs.k8s.io/api-types/httproute/#backendrefs-optional
+      # REMINDER: Changeds cant be kubectl applied since ArgoCD is in control!
+      - path:
           type: PathPrefix 
           value: "/test"
         method: POST
