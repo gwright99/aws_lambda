@@ -92,7 +92,7 @@ spec:
         ports:
         - containerPort: 8000
         volumeMounts:
-          - name: nginx-message
+          - name: nginx-message2
             mountPath: /usr/share/nginx/html/
       
       # https://pwittrock.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/
