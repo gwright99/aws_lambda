@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd_dummy_trigger
+  namespace: lambda
+data:
+  foo: "Fri 29 Mar 2024 06:08:05 PM EDT"
