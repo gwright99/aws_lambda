@@ -12,7 +12,7 @@ spec:
     spec:
       serviceAccountName: deletelambda
       containers:
-      - name: delete-first-app
+      - name: delete-first-app      # Can't call it `app1-delete` cuz app1 gets picked up by the unsophistocated grep
         image: nginx:latest
         command: ["/bin/bash"]
         args: ["-c", "/tmp/purge/purge.sh"]
