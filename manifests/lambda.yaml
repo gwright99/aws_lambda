@@ -38,6 +38,15 @@ spec:
               secretKeyRef:
                 name: gh-pat
                 key: cr_pat
+
+      - image: nginx:latest
+        name: mynginx
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+          - name: nginx-message
+            mountPath: /usr/share/nginx/html/
+
       # https://pwittrock.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/
       volumes:
         - name: nginx-message
