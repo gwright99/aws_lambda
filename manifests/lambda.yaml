@@ -62,7 +62,7 @@ metadata:
   creationTimestamp: null
   labels:
     app: lambda2
-  name: lambda2
+  name: someotherapp    # Used `lambda2` before but think this breaks the purge script
   namespace: lambda
 spec:
   replicas: 1
