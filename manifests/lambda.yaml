@@ -6,7 +6,7 @@ metadata:
     app: lambda
   name: lambda
   namespace: lambda
-  argotrigger: blah
+  # argotrigger: blah
 spec:
   replicas: 1
   selector:
@@ -121,15 +121,8 @@ spec:
     name: public-cloudflare
     namespace: gloo-system
   rules:
-  # Redirect Lambda elsewhere
+    # Redirect Lambda to NGINX warning to use Post
     - matches:
-      # - method: "GET"
-      # backendRefs:
-      #   - name: mynginx
-      #     kind: Service
-      #     group: ""
-      #     port: 8000
-      #     #weight: 1
       - method: "GET"
       backendRefs:
         - name: lambda-mynginx
@@ -140,7 +133,19 @@ spec:
 
     # Actual code
     - matches:
-      - method: "POST"
+      # - method: "POST"
+      - path:                 # <--- new start. Works when method: POST not active
+          type: PathPrefix 
+          value: "/test"
+        method: POST
+      
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: "/2015-03-31/functions/function/invocations"
+
       backendRefs:
         - name: lambda
           kind: Service
