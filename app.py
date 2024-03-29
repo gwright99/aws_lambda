@@ -18,18 +18,7 @@ def handler(event, context):
 
     print("Hello2")
     print("Hello3")
-    print("Hello4")
-    print("Hello5")
-    print("Hello6")
-    print("Hello7")
-    print("Hello9")
-    print("Hello10")
-    print("Hello11")
-    print("Hello12")
-    print("Hello13")
-    print("Hello27")
-    print("Hello28")
-    print("Hello29")
-    print("Hello30")
+    print("Hello31")
+
 
     return expected_response 
