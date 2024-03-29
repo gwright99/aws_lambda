@@ -1,0 +1,53 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: app1-delete
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+  namespace: lambda
+spec:
+  template:
+    spec:
+      serviceAccountName: deletelambda
+      containers:
+      - name: delete-first-app
+        image: nginx:latest
+        command: ["/bin/bash"]
+        args: ["-c", "/tmp/purge/purge.sh"]
+        volumeMounts:
+          - name: app1-purgescript
+            mountPath: /tmp/purge/
+      volumes:
+        - name: app1-purgescript
+          configMap:
+            defaultMode: 0777   # To defeat ReadOnly
+            name: app1-purgescript
+            items:
+              - key: purge.sh
+                path: purge.sh
+      restartPolicy: Never
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app1-purgescript
+  namespace: lambda
+data:
+  purge.sh: |
+    apt update && apt install -y jq
+
+    APISERVER=https://kubernetes.default.svc
+    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+    TOKEN=$(cat ${SERVICEACCOUNT}/token)
+    CACERT=${SERVICEACCOUNT}/ca.crt
+
+    sleep 5
+    jq --version
+
+    CONTAINERNAME=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods | jq '.items[].metadata.name' | echo $(grep app1) | xargs)
+    sleep 5
+    echo $CONTAINERNAME
+    curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME

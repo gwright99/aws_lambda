@@ -30,26 +30,3 @@ roleRef:
   kind: Role #this must be Role or ClusterRole
   name: deletelambda # this must match the name of the Role or ClusterRole you wish to bind to
   apiGroup: rbac.authorization.k8s.io
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: purgescript
-  namespace: lambda
-data:
-  purge.sh: |
-    apt update && apt install -y jq
-
-    APISERVER=https://kubernetes.default.svc
-    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
-    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
-    TOKEN=$(cat ${SERVICEACCOUNT}/token)
-    CACERT=${SERVICEACCOUNT}/ca.crt
-
-    sleep 5
-    jq --version
-
-    CONTAINERNAME=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods | jq '.items[].metadata.name' | echo $(grep lambda) | xargs)
-    sleep 5
-    echo $CONTAINERNAME
-    curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME

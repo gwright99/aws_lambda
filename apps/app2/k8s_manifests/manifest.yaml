@@ -1,0 +1,148 @@
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: app2
+  name: app2
+  namespace: lambda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: app2
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: app2
+      namespace: lambda
+    spec:
+      containers:
+      - image: gwright99/lambda_py3.11:base
+        name: app2
+        ports:
+        - containerPort: 8080
+        env:
+          - name: APP_NAME
+            value: "app2"
+          - name: CR_USER
+            valueFrom:
+              secretKeyRef:
+                name: gh-pat
+                key: cr_user
+          - name: CR_PAT
+            valueFrom:
+              secretKeyRef:
+                name: gh-pat
+                key: cr_pat
+
+      - image: nginx:latest
+        name: app2-nginx
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+          - name: app2-nginx-message2
+            mountPath: /usr/share/nginx/html/
+      
+      # https://pwittrock.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/
+      volumes:
+        - name: app2-nginx-message2
+          configMap:
+            name: app2-nginx-message
+            items:
+              - key: index.html
+                path: index.html
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: app2
+  name: app2
+  namespace: lambda
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: app2
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: app2
+  name: app2-nginx
+  namespace: lambda
+spec:
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: app2
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app2-nginx-message
+  namespace: lambda
+data:
+  index.html: |
+    <html>
+    <h1>Please use POST methods to call the App2 Lambda function</h1>
+    </br>
+    <p>You tried to call this Lambda function with an HTTP GET method (likely from your browser).
+    The Lambda handler expects requests to be sent as HTTP POST. Please try again.</p>
+    </html>
+---
+# Cheating -- to handle GETS to Lambda (which only handles POSTS) just redirect to nginx.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  labels:
+    example: app2
+  name: app2
+  namespace: lambda
+spec:
+  hostnames:
+  - lambda.grahamwrightk8s.net
+  parentRefs:
+  - group: gateway.networking.k8s.io
+    kind: Gateway
+    name: public-cloudflare
+    namespace: gloo-system
+  rules:
+    # Redirect Lambda to NGINX warning to use Post
+    - matches:
+      - method: "GET"
+      backendRefs:
+        - name: app2-mynginx
+          kind: Service
+          group: ""
+          port: 8000
+
+    # Actual code
+    - matches:
+      # Composite match (POST + Prefix)
+      # Example: https://gateway-api.sigs.k8s.io/api-types/httproute/#backendrefs-optional
+      # REMINDER: Changes cant be kubectl applied since ArgoCD is in control!
+      - path:
+          type: PathPrefix 
+          value: "/app2"
+        method: POST
+      
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: "/2015-03-31/functions/function/invocations"
+
+      backendRefs:
+        - name: app2
+          kind: Service
+          group: ""
+          port: 8080
