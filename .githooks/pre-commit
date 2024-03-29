@@ -15,4 +15,4 @@ data:
   foo: "$(date)"
 EOF
 
-git add manifests/trigger_argo_refresh2.yaml
+git add manifests/argocd_dummy_trigger.yaml
