@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - image: gwright99/lambda_py3.11:base
-        name: lambda-py3-11
+        name: lambda
         command: ["sleep", "3600"]
         # command: [ "/bin/bash" ]
         # args: ["-c", "/var/task/entry_script.sh", "app.handler"]
@@ -69,7 +69,7 @@ spec:
     spec:
       containers:
       - image: gwright99/lambda_py3.11:base
-        name: lambda-py3-11
+        name: lambda2
         # command: ["sleep", "300"]
         command: [ "/bin/bash" ] # , "/var/task/entry_script.sh" ]
         args: ["-c", "/var/task/entry_script.sh", "app2.handler"]
