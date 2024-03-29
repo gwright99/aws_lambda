@@ -27,8 +27,8 @@ if [ -z "${AWS_LAMBDA_RUNTIME_API}" ]; then
   # Trying this since it seems cleaner than messing around with k8s init
   git clone "https://$CR_USER:$CR_PAT@github.com/gwright99/aws_lambda.git" /aws_lambda
 
-  # If APP_NAME is specified means we want to reload from that particular app.
-  if [ -z "${APP_NAME}" ]; then
+  # If APP_NAME is not an empty string, means we want to reload from that particular app.
+  if [ ! -z "${APP_NAME}" ]; then
     cp -r /aws_lambda/apps/$APP_NAME/src/* /var/task/
   fi
 
