@@ -23,6 +23,54 @@ spec:
       - image: gwright99/lambda_py3.11:base
         name: lambda-py3-11
         # command: ["sleep", "300"]
+        command: ["app.handler"]
+        ports:
+        - containerPort: 8080
+        env:
+          - name: CR_USER
+            valueFrom:
+              secretKeyRef:
+                name: gh-pat
+                key: cr_user
+          - name: CR_PAT
+            valueFrom:
+              secretKeyRef:
+                name: gh-pat
+                key: cr_pat
+      # https://pwittrock.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/
+      volumes:
+        - name: nginx-message
+          configMap:
+            name: nginx-message
+            items:
+              - key: index.html
+                path: index.html
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: lambda2
+  name: lambda2
+  namespace: lambda
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lambda2
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: lambda2
+      namespace: lambda
+    spec:
+      containers:
+      - image: gwright99/lambda_py3.11:base
+        name: lambda-py3-11
+        # command: ["sleep", "300"]
+        command: ["app2.handler"]
         ports:
         - containerPort: 8080
         env:
@@ -47,7 +95,7 @@ spec:
       
       # https://pwittrock.github.io/docs/tasks/configure-pod-container/configure-pod-configmap/
       volumes:
-        - name: nginx-message
+        - name: nginx-message2
           configMap:
             name: nginx-message
             items:
@@ -103,6 +151,42 @@ spec:
     app: lambda
 status:
   loadBalancer: {}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     app: lambda2
+#   name: lambda2
+#   namespace: lambda
+# spec:
+#   ports:
+#   - port: 8080
+#     protocol: TCP
+#     targetPort: 8080
+#   selector:
+#     app: lambda2
+# status:
+#   loadBalancer: {}
+# ---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   creationTimestamp: null
+#   labels:
+#     app: lambda2
+#   name: lambda-mynginx
+#   namespace: lambda
+# spec:
+#   ports:
+#   - port: 8000
+#     protocol: TCP
+#     targetPort: 80
+#   selector:
+#     app: lambda2
+# status:
+#   loadBalancer: {}
 ---
 # Cheating -- to handle GETS to Lambda (which only handles POSTS) just redirect to nginx.
 apiVersion: gateway.networking.k8s.io/v1
@@ -135,7 +219,7 @@ spec:
     - matches:
       # Composite match (POST + Prefix)
       # Example: https://gateway-api.sigs.k8s.io/api-types/httproute/#backendrefs-optional
-      # REMINDER: Changeds cant be kubectl applied since ArgoCD is in control!
+      # REMINDER: Changes cant be kubectl applied since ArgoCD is in control!
       - path:
           type: PathPrefix 
           value: "/test"
