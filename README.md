@@ -98,5 +98,18 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
 
     - `purgescript` often hangs when there is a single mistake in manifests (e.g. name with underscore rather than hyphens).
     - ArgoCD somethings wont synch because Jobs get stuff / not kicked off for parsing reasons.
+    - Random naming of pod. K8s add random alphanumeric to end of the `generateName`.
+        - I called mine things like `delete-third-app`. 
+        - If the random number started with `3`, Pod name would look like: `delete-third-app3271174-presync-1711821509-7tccl`
+        - The `app3` part (end of name mashed with start of alphanumeric), clashes with the actually app pod `app3`.
+        - My loose and non-robust `grep` would fail since it finds TWO hits -- the original `app3` pod and the `delete-third-app3...` killer.
 
+            ```bash
+            # Example of error
+            0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: delete-first-app2f87380-presync-1711821119-bfmn9
+            
+            0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: delete-second-app2f87380-presync-1711821119-hwmjt
+            
+            0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0curl: (6) Could not resolve host: delete-second-app2f87380-presync-1711821119-jc522
+            ```
 
