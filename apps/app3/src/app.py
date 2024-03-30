@@ -8,7 +8,7 @@ def handler(event, context):
             "Content-Type": "application/json",
             "My-Custom-Header": "APP3"
         },
-        "body": "{ \"message\": \"This is app3\" }",
+        "body": "{ \"message\": \"This is app3, after editing.\" }",
 
         "isBase64Encoded": False
     }
