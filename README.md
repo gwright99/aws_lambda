@@ -39,15 +39,62 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
 
 1. The ArgoCD Application pointing towards this repo watches for changes in the `/manifests` folder, but the code I'll be deploying is in the rest of the repository. To force the update:
 
-    1. Create a git pre-commit hook in `.git/hooks/pre-commit`. **NOTE: ** I have to write it out here because there [doesn't seem to be a clean way to track the damn thing](https://stackoverflow.com/questions/427207/can-git-hook-scripts-be-managed-along-with-the-repository) -- (moved pre-commit to `.githooks` via ` git config core.hooksPath .githooks`)
+    1. Create a git pre-commit hook. 
+
+        - Was originally in `.git/hooks/pre-commit` but this sucks you can't save changes made within the `.git` folder.
+        - Swapped to a contollable [`.githook` bespoke folder](https://stackoverflow.com/questions/427207/can-git-hook-scripts-be-managed-along-with-the-repository)
+        - Told project git to use the folder via: ` git config core.hooksPath .githooks`.
+        - Configured dummy file to generate a small ConfigMap (seems to work equally well with just a timestamp in a file).
+
+    2. Create an ArgoCD [Resource Hook](https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/).
+    
+        - Originally defined in `manifests/resource_hook.yaml`, but later split our 1-1 in the app subfolders for atomicity.
+        - Creates a Job which runs a custom (janky) Bash script which kills the associated Pod.
+        - Committing to git repo fires a webhook from Github -> ArgoCD. ArgoCD then syncs which prompts the activation of the Resource hook.
+
+ 
+## App Usage and Gotchas
+
+#### Adding a new app
+
+    1. Clone an existing app folder in `apps`:
+
         ```bash
-        #!/bin/bash
-        # Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigger
-        echo $(date) > manifests/trigger_argo_refresh.yaml
-        git add manifests/trigger_argo_refresh.yaml 
+        $ cd <PATH_TO_PROJECT>/apps
+        $ cp -r app1 new_app
         ```
+    
+    2. Add custom app logic in `<PATH_TO_PROJECT>/apps/<APP_NAME>>/src/app.py`.
 
-    2. Create an ArgoCD [Resource Hook](https://argo-cd.readthedocs.io/en/stable/user-guide/resource_hooks/) definition in `manifests/resource_hook.yaml`. This creates a Job which leverages a serviec account and purgescript (created in `manifests/sa_delete.yaml`) to query the K8s API and delete a pod with the name `lambda*`.
+    3. Update `<PATH_TO_PROJECT>/apps/<APP_NAME>/k8s_manifests`:
+        - **manifest.yaml**
+            Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
 
-    3. Make a change to a file(s) in the repository, add, and commit. The updated `manifests/trigger_argo_refresh.yaml` will tag along for the ride.
+            Modify API Gateway allowed behaviours too.
+    
+        - **resource_hook_deletion.yaml**
+            Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
+
+            Replace the `generateName` value with something unique.
+
+    4. Create a symlink in `<PATH_TO_PROJECT>/manifests` to `<PATH_TO_PROJECT/apps/<APP_NAME>/k8s_manifests/*`:
+
+        - Keeps everything in a central location while getting the fails sorted locally in the app where they are used.
+
+            ```bash
+            $ cd <PATH_TO_PROJECT>/manifests
+            $ ln -s ../apps/<APP_NAME>/k8s_manifests/manifest.yaml <APP_NAME>.yaml
+            $ ln -s ../apps/<APP_NAME>/k8s_manifests/resource_hook_deletion.yaml <APP_NAME>_resource_hook_delete.yaml
+            ```
+    
+    5. Modify code, make a commit, and see automation take over. ***Note: This assumes you did the work prior to setup the ArgoCD cluster, GH webhooks, K8s Pod design, etc.
+
+
+#### Gotchas
+    
+    !!! warning "Some parts of this are brittle!"
+    
+        - `purgescript` often hangs when there is a single mistake in manifests (e.g. name with underscore rather than hyphens).
+        - ArgoCD somethings wont synch because Jobs get stuff / not kicked off for parsing reasons.
+
 
