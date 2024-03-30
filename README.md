@@ -57,44 +57,44 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
 
 #### Adding a new app
 
-    1. Clone an existing app folder in `apps`:
+1. Clone an existing app folder in `apps`:
+
+    ```bash
+    $ cd <PATH_TO_PROJECT>/apps
+    $ cp -r app1 new_app
+    ```
+
+2. Add custom app logic in `<PATH_TO_PROJECT>/apps/<APP_NAME>>/src/app.py`.
+
+3. Update `<PATH_TO_PROJECT>/apps/<APP_NAME>/k8s_manifests`:
+    - **manifest.yaml**
+        Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
+
+        Modify API Gateway allowed behaviours too.
+
+    - **resource_hook_deletion.yaml**
+        Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
+
+        Replace the `generateName` value with something unique.
+
+4. Create a symlink in `<PATH_TO_PROJECT>/manifests` to `<PATH_TO_PROJECT/apps/<APP_NAME>/k8s_manifests/*`:
+
+    - Keeps everything in a central location while getting the fails sorted locally in the app where they are used.
 
         ```bash
-        $ cd <PATH_TO_PROJECT>/apps
-        $ cp -r app1 new_app
+        $ cd <PATH_TO_PROJECT>/manifests
+        $ ln -s ../apps/<APP_NAME>/k8s_manifests/manifest.yaml <APP_NAME>.yaml
+        $ ln -s ../apps/<APP_NAME>/k8s_manifests/resource_hook_deletion.yaml <APP_NAME>_resource_hook_delete.yaml
         ```
-    
-    2. Add custom app logic in `<PATH_TO_PROJECT>/apps/<APP_NAME>>/src/app.py`.
 
-    3. Update `<PATH_TO_PROJECT>/apps/<APP_NAME>/k8s_manifests`:
-        - **manifest.yaml**
-            Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
-
-            Modify API Gateway allowed behaviours too.
-    
-        - **resource_hook_deletion.yaml**
-            Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
-
-            Replace the `generateName` value with something unique.
-
-    4. Create a symlink in `<PATH_TO_PROJECT>/manifests` to `<PATH_TO_PROJECT/apps/<APP_NAME>/k8s_manifests/*`:
-
-        - Keeps everything in a central location while getting the fails sorted locally in the app where they are used.
-
-            ```bash
-            $ cd <PATH_TO_PROJECT>/manifests
-            $ ln -s ../apps/<APP_NAME>/k8s_manifests/manifest.yaml <APP_NAME>.yaml
-            $ ln -s ../apps/<APP_NAME>/k8s_manifests/resource_hook_deletion.yaml <APP_NAME>_resource_hook_delete.yaml
-            ```
-    
-    5. Modify code, make a commit, and see automation take over. ***Note: This assumes you did the work prior to setup the ArgoCD cluster, GH webhooks, K8s Pod design, etc.
+5. Modify code, make a commit, and see automation take over. ***Note: This assumes you did the work prior to setup the ArgoCD cluster, GH webhooks, K8s Pod design, etc.
 
 
 #### Gotchas
     
-    !!! warning "Some parts of this are brittle!"
+!!! warning "Some parts of this are brittle!"
     
-        - `purgescript` often hangs when there is a single mistake in manifests (e.g. name with underscore rather than hyphens).
-        - ArgoCD somethings wont synch because Jobs get stuff / not kicked off for parsing reasons.
+    - `purgescript` often hangs when there is a single mistake in manifests (e.g. name with underscore rather than hyphens).
+    - ArgoCD somethings wont synch because Jobs get stuff / not kicked off for parsing reasons.
 
 
