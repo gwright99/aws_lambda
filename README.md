@@ -68,14 +68,16 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
 
 3. Update `<PATH_TO_PROJECT>/apps/<APP_NAME>/k8s_manifests`:
     - **manifest.yaml**
-        Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
+        
+        1. ind/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
 
-        Modify API Gateway allowed behaviours too.
+        2. Modify API Gateway allowed behaviours too.
 
     - **resource_hook_deletion.yaml**
-        Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
+        
+        1. Find/Replace `app1` with your desired name. For simplicity make sure `<APP_NAME>` is the same value as what you give to other replaced fields.
 
-        Replace the `generateName` value with something unique.
+        2. Replace the `generateName` and `container.name` value with something unique.
 
 4. Create a symlink in `<PATH_TO_PROJECT>/manifests` to `<PATH_TO_PROJECT/apps/<APP_NAME>/k8s_manifests/*`:
 
@@ -93,7 +95,7 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
 #### Gotchas
     
 !!! warning "Some parts of this are brittle!"
-    
+
     - `purgescript` often hangs when there is a single mistake in manifests (e.g. name with underscore rather than hyphens).
     - ArgoCD somethings wont synch because Jobs get stuff / not kicked off for parsing reasons.
 
