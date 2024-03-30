@@ -10,10 +10,11 @@ Repo for developing Python3-based AWS Lambda code
 
 Rough commands:
 ```bash
-# Used hardcode paths with the ARG for convenience.
-scp -r testcontrol1:/home/ubuntu/aws_lambda . 
-docker buildx build --no-cache --tag gwright99/lambda_py3.11:base .
-docker run --rm gwright99/lambda_py3.11:base
+$ scp -r testcontrol1:/home/ubuntu/aws_lambda . 
+$ cd ~/aws_lambda/apps
+$ docker buildx build --no-cache -f core/Dockerfile --tag gwright99/lambda_py3.11:base .
+$ docker buildx build --no-cache -f core/Dockerfile --build-arg APP_NAME=app1 --tag gwright99/lambda_py3.11:base .
+$ docker run -it --rm --entrypoint /bin/bash gwright99/lambda_py3.11:base
 
 curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{}'
 docker exec -it CONTAINER_NAME curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{}'
@@ -28,8 +29,8 @@ curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d
 curl -XPOST "https://lambda.grahamwrightk8s.net/2015-03-31/functions/function/invocations" -d '{}' --verbose
 
 # Modified the HTTPRoute so that easy-to-remember URL is converted behind-the-scenes
-curl -XPOST "https://lambda.grahamwrightk8s.net/test" -d '{}' --verbose
-# goes to "https://lambda.grahamwrightk8s.net/2015-03-31/functions/function/invocations"
+curl -XPOST "https://lambda.grahamwrightk8s.net/app1" -d '{}' --verbose
+curl -XPOST "https://lambda.grahamwrightk8s.net/app2" -d '{}' --verbose
 ```
 
 ## Infrastructure
