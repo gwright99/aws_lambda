@@ -51,3 +51,4 @@ data:
     sleep 5
     echo $CONTAINERNAME
     curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME
+    

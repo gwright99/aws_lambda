@@ -97,51 +97,51 @@ data:
     The Lambda handler expects requests to be sent as HTTP POST. Please try again.</p>
     </html>
 ---
-# Cheating -- to handle GETS to Lambda (which only handles POSTS) just redirect to nginx.
-apiVersion: gateway.networking.k8s.io/v1
-kind: HTTPRoute
-metadata:
-  labels:
-    example: app3
-  name: app3
-  namespace: lambda
-spec:
-  hostnames:
-  - lambda.grahamwrightk8s.net
-  parentRefs:
-  - group: gateway.networking.k8s.io
-    kind: Gateway
-    name: public-cloudflare
-    namespace: gloo-system
-  rules:
-    # Redirect Lambda to NGINX warning to use Post
-    - matches:
-      - method: "GET"
-      backendRefs:
-        - name: app3-mynginx
-          kind: Service
-          group: ""
-          port: 8000
+# # Cheating -- to handle GETS to Lambda (which only handles POSTS) just redirect to nginx.
+# apiVersion: gateway.networking.k8s.io/v1
+# kind: HTTPRoute
+# metadata:
+#   labels:
+#     example: app3
+#   name: app3
+#   namespace: lambda
+# spec:
+#   hostnames:
+#   - lambda.grahamwrightk8s.net
+#   parentRefs:
+#   - group: gateway.networking.k8s.io
+#     kind: Gateway
+#     name: public-cloudflare
+#     namespace: gloo-system
+#   rules:
+#     # Redirect Lambda to NGINX warning to use Post
+#     - matches:
+#       - method: "GET"
+#       backendRefs:
+#         - name: app3-mynginx
+#           kind: Service
+#           group: ""
+#           port: 8000
 
-    # Actual code
-    - matches:
-      # Composite match (POST + Prefix)
-      # Example: https://gateway-api.sigs.k8s.io/api-types/httproute/#backendrefs-optional
-      # REMINDER: Changes cant be kubectl applied since ArgoCD is in control!
-      - path:
-          type: PathPrefix 
-          value: "/app3"
-        method: POST
+#     # Actual code
+#     - matches:
+#       # Composite match (POST + Prefix)
+#       # Example: https://gateway-api.sigs.k8s.io/api-types/httproute/#backendrefs-optional
+#       # REMINDER: Changes cant be kubectl applied since ArgoCD is in control!
+#       - path:
+#           type: PathPrefix 
+#           value: "/app3"
+#         method: POST
       
-      filters:
-        - type: URLRewrite
-          urlRewrite:
-            path:
-              type: ReplacePrefixMatch
-              replacePrefixMatch: "/2015-03-31/functions/function/invocations"
+#       filters:
+#         - type: URLRewrite
+#           urlRewrite:
+#             path:
+#               type: ReplacePrefixMatch
+#               replacePrefixMatch: "/2015-03-31/functions/function/invocations"
 
-      backendRefs:
-        - name: app3
-          kind: Service
-          group: ""
-          port: 8080
+#       backendRefs:
+#         - name: app3
+#           kind: Service
+#           group: ""
+#           port: 8080
