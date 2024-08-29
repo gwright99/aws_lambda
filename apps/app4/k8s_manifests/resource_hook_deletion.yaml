@@ -36,6 +36,7 @@ metadata:
   namespace: lambda
 data:
   purge.sh: |
+    # Not getting created why?
     apt update && apt install -y jq
 
     APISERVER=https://kubernetes.default.svc
