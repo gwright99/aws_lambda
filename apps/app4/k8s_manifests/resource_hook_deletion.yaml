@@ -1,4 +1,29 @@
 ---
+# Originally had ArgoCD Hook above. Is fact that CM doesn't yet exist causing problem?
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app4-purgescript
+  namespace: lambda
+data:
+  purge.sh: |
+    # Not getting created why?
+    apt update && apt install -y jq
+
+    APISERVER=https://kubernetes.default.svc
+    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+    TOKEN=$(cat ${SERVICEACCOUNT}/token)
+    CACERT=${SERVICEACCOUNT}/ca.crt
+
+    sleep 5
+    jq --version
+
+    CONTAINERNAME=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods | jq '.items[].metadata.name' | echo $(grep app4) | xargs)
+    sleep 5
+    echo $CONTAINERNAME
+    curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME
+---
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -28,27 +53,3 @@ spec:
               - key: purge.sh
                 path: purge.sh
       restartPolicy: Never
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: app4-purgescript
-  namespace: lambda
-data:
-  purge.sh: |
-    # Not getting created why?
-    apt update && apt install -y jq
-
-    APISERVER=https://kubernetes.default.svc
-    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
-    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
-    TOKEN=$(cat ${SERVICEACCOUNT}/token)
-    CACERT=${SERVICEACCOUNT}/ca.crt
-
-    sleep 5
-    jq --version
-
-    CONTAINERNAME=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods | jq '.items[].metadata.name' | echo $(grep app4) | xargs)
-    sleep 5
-    echo $CONTAINERNAME
-    curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME
