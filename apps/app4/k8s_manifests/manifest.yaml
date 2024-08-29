@@ -116,9 +116,13 @@ spec:
   rules:
     # Redirect Lambda to NGINX warning to use Post
     - matches:
-      - method: "GET"
+      - path:
+          type: PathPrefix
+          value: "/app4"
+        method: "GET"
+
       backendRefs:
-        - name: app4-mynginx
+        - name: app4-nginx
           kind: Service
           group: ""
           port: 8000
