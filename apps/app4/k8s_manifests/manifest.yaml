@@ -121,6 +121,13 @@ spec:
           value: "/app4"
         method: "GET"
 
+      filters:
+        - type: URLRewrite
+          urlRewrite:
+            path:
+              type: ReplacePrefixMatch
+              replacePrefixMatch: "/"
+
       backendRefs:
         - name: app4-nginx
           kind: Service
