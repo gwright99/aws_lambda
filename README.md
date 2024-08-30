@@ -13,7 +13,7 @@ Rough commands:
 $ scp -r testcontrol1:/home/ubuntu/aws_lambda . 
 $ cd ~/aws_lambda/apps
 $ docker buildx build --no-cache -f core/Dockerfile --tag gwright99/lambda_py3.11:base .
-$ docker buildx build --no-cache -f core/Dockerfile --build-arg APP_NAME=app1 --tag gwright99/lambda_py3.11:base .
+$ docker buildx build --no-cache -f core/Dockerfile --build-arg APP_NAME=app1 --tag gwright99/lambda_py3.11:app1 .
 $ docker run -it --rm --entrypoint /bin/bash gwright99/lambda_py3.11:base
 
 curl -XPOST "http://localhost:8080/2015-03-31/functions/function/invocations" -d '{}'
@@ -96,6 +96,7 @@ I wanted a true CICD where making a change to `app.py` would cause the fresh cod
     
 !!! warning "Some parts of this are brittle!"
 
+    - First time deployments broke due to purgescript CM dependency. Fixed in `app6` via [Sync Waves](https://argo-cd.readthedocs.io/en/stable/user-guide/sync-waves/).
     - `purgescript` often hangs when there is a single mistake in manifests (e.g. name with underscore rather than hyphens).
     - ArgoCD somethings wont synch because Jobs get stuff / not kicked off for parsing reasons.
     - Random naming of pod. K8s add random alphanumeric to end of the `generateName`.

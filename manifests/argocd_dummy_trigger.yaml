@@ -5,4 +5,4 @@ metadata:
   name: argocd-dummy-trigger
   namespace: lambda
 data:
-  foo: "Fri 30 Aug 2024 10:13:40 AM EDT"
+  foo: "Fri 30 Aug 2024 10:17:44 AM EDT"
