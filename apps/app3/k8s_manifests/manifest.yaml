@@ -129,7 +129,7 @@ spec:
               replacePrefixMatch: "/"
 
       backendRefs:
-        - name: app3-mynginx
+        - name: app3-nginx
           kind: Service
           group: ""
           port: 8000
