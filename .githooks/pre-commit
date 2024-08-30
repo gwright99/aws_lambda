@@ -1,18 +1,106 @@
 #!/bin/bash
 
+# --------------------------------------------------------------------------------------
+# TOP-LEVEL ARTIFCT -- FORCE ALL APPS TO CYCLE (assuming ArgoCD focused on /manifests)
 # Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigger
 # echo $(date) > manifests/trigger_argo_refresh3.yaml
 # git add manifests/trigger_argo_refresh2.yaml 
 
-cat << EOF > manifests/argocd_dummy_trigger.yaml
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-dummy-trigger
-  namespace: lambda
-data:
-  foo: "$(date)"
-EOF
+# cat << EOF > manifests/argocd_dummy_trigger.yaml
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: argocd-dummy-trigger
+#   namespace: lambda
+# data:
+#   foo: "$(date)"
+# EOF
 
-git add manifests/argocd_dummy_trigger.yaml
+# git add manifests/argocd_dummy_trigger.yaml
+# --------------------------------------------------------------------------------------
+
+# LOCALIZED
+# ONLY ADD DUMMY FILE TO LOCAL APP SUB-DIRECTORY
+# REPO_ROOT="/home/ubuntu/aws_lambda"
+
+# create_dummy () {
+# cat << EOF > $1/k8s_manifests/argocd_dummy_trigger.yaml
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: argocd-dummy-trigger-app$2
+#   namespace: lambda
+# data:
+#   foo: "$(date)"
+# EOF
+
+# git add $1/k8s_manifests/argocd_dummy_trigger.yaml
+# }
+
+
+# # https://superuser.com/questions/552617/execute-git-pre-commit-hook-only-if-files-in-certain-directory-modified
+# END=10
+# for ((i=1;i<=END;i++)); do
+#   # 0 means not found; 1 means pattern has been matched by at least 1 file.
+#   if [[ $(git diff --cached --quiet --diff-filter=ACMR -- "apps/app$i/*"; echo $?) == 1 ]]; then
+#     pwd
+#     x="$PWD/apps/app$i"
+#     create_dummy $x $i
+#   fi
+# done
+
+
+
+
+# create_dummy() {
+# cat << EOF > $1/k8s_manifests/argocd_dummy_trigger.yaml
+# ---
+# apiVersion: v1
+# kind: ConfigMap
+# metadata:
+#   name: argocd-dummy-trigger-$2
+#   namespace: lambda
+# data:
+#   foo: "$(date)"
+# EOF
+
+# git add $1/k8s_manifests/argocd_dummy_trigger.yaml
+# }
+
+# Get every staged file
+# Cut down to the root
+# Get App name and convert underscore to dashes
+# Update the manifest path for each root.
+if [[ $(git diff --cached --quiet --diff-filter=ACMR -- "apps/*"; echo $?) == 1 ]]; then
+
+  echo "yes"
+
+  # https://stackoverflow.com/questions/6958689/running-multiple-commands-with-xargs
+  # The way I've done it is not entirely secure, but much easier to maintain.
+  # Couldn't get local function to be callabe in xargs.
+  #  - Had to export to separate file and then source.
+  #  - But source doesn't work with xargs so had to use '.' instead.
+  git diff --cached --name-only --diff-filter=ACMR -- "apps/*" | \
+  xargs -I % sh -c \
+     'echo "$PWD";
+      # source "$PWD/.githooks/create_dummy";
+      . "$PWD/.githooks/create_dummy";
+      export ROOT=$(echo % | cut -d/ -f 1-2);
+      export APP=$(echo % | cut -d/ -f 2-2 | tr "-" "_");
+      # env | grep APP;
+      export APP_PATH="$PWD/$ROOT";
+      env | grep APP_PATH;
+      create_dummy $APP_PATH $APP;'
+fi
+
+
+    #  export ROOT=$(echo {"$arg"} | cut -d/ -f 1-2); \
+    #  echo "blah2"; \
+    #  APP=$(echo "$arg" | cut -d/ -f 2-2 | tr '-' '_'); \
+    #  echo "blah3"; \
+    #  PATH="$PWD/$ROOT"; \
+    #  echo "blah4"; \
+    #  echo "$PATH -- $APP"; \
+    #  $create_dummy "$PATH" "$APP";'

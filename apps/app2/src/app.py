@@ -1,6 +1,6 @@
 def handler(event, context):
     ''' App2 logic '''
-    print("Hello from App2")
+    print("Hello from App2 (after solo deployment2)")
 
     expected_response = {
         "statusCode": 201,

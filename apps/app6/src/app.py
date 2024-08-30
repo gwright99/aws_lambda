@@ -13,7 +13,7 @@ def handler(event, context):
         "isBase64Encoded": False
     }
 
-    print("Hello from APP6 deploy via its own ArgoCD Application.")
+    print("Hello from APP6 deploy via its own ArgoCD Application. Changing.")
 
 
     return expected_response 
