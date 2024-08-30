@@ -1,0 +1,58 @@
+---
+# Originally had ArgoCD Hook above. Is fact that CM doesn't yet exist causing problem?
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app6-purgescript
+  namespace: lambda
+  annotations:
+    argocd.argoproj.io/sync-wave: "-1"
+data:
+  purge.sh: |
+    # Not getting created why?
+    apt update && apt install -y jq
+
+    APISERVER=https://kubernetes.default.svc
+    SERVICEACCOUNT=/var/run/secrets/kubernetes.io/serviceaccount
+    NAMESPACE=$(cat ${SERVICEACCOUNT}/namespace)
+    TOKEN=$(cat ${SERVICEACCOUNT}/token)
+    CACERT=${SERVICEACCOUNT}/ca.crt
+
+    sleep 5
+    jq --version
+
+    CONTAINERNAME=$(curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X GET ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods | jq '.items[].metadata.name' | echo $(grep app6) | xargs)
+    sleep 5
+    echo $CONTAINERNAME
+    curl --cacert ${CACERT} --header "Authorization: Bearer ${TOKEN}" -X DELETE ${APISERVER}/api/v1/namespaces/$NAMESPACE/pods/$CONTAINERNAME
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: delete-sixth-application
+  annotations:
+    # argocd.argoproj.io/hook: PreSync
+    # argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/sync-wave: "0"
+  namespace: lambda
+spec:
+  template:
+    spec:
+      serviceAccountName: deletelambda
+      containers:
+      - name: delete-sixth-app      # Can't call it `app6-delete` cuz app6 gets picked up by the unsophistocated grep
+        image: nginx:latest
+        command: ["/bin/bash"]
+        args: ["-c", "/tmp/purge/purge.sh"]
+        volumeMounts:
+          - name: app6-purgescript
+            mountPath: /tmp/purge/
+      volumes:
+        - name: app6-purgescript
+          configMap:
+            defaultMode: 0777   # To defeat ReadOnly
+            name: app6-purgescript
+            items:
+              - key: purge.sh
+                path: purge.sh
+      restartPolicy: Never
