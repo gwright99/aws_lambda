@@ -29,7 +29,7 @@ data:
 apiVersion: batch/v1
 kind: Job
 metadata:
-  generateName: delete-sixth-application
+  # generateName: delete-sixth-application
   annotations:
     # argocd.argoproj.io/hook: PreSync
     # argocd.argoproj.io/hook-delete-policy: HookSucceeded
