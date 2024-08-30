@@ -1,6 +1,6 @@
 def handler(event, context):
     ''' Lambda App 3 '''
-    print("hello from ap3!")
+    print("hello from app3!")
 
     expected_response = {
         "statusCode": 201,
@@ -13,7 +13,7 @@ def handler(event, context):
         "isBase64Encoded": False
     }
 
-    print("Hello2")
+    print("Hello from app3")
 
 
     return expected_response 

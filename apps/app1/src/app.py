@@ -1,6 +1,6 @@
 def handler(event, context):
     ''' The first function to be invoked by Lambda '''
-    print("hello!")
+    print("hello from app1!")
 
     expected_response = {
         "statusCode": 201,

@@ -1,6 +1,6 @@
 def handler(event, context):
     ''' Lambda App 3 '''
-    print("hello from ap3!")
+    print("hello from app4!")
 
     expected_response = {
         "statusCode": 201,
