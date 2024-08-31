@@ -1,8 +1,0 @@
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: argocd-dummy-trigger
-  namespace: lambda
-data:
-  foo: "Fri 30 Aug 2024 10:47:08 AM EDT"
