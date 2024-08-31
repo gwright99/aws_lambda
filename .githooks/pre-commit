@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # --------------------------------------------------------------------------------------
+# FIRST ATTEMPT (WORKS)
 # TOP-LEVEL ARTIFCT -- FORCE ALL APPS TO CYCLE (assuming ArgoCD focused on /manifests)
 # Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigger
 # echo $(date) > manifests/trigger_argo_refresh3.yaml
@@ -18,11 +19,13 @@
 # EOF
 
 # git add manifests/argocd_dummy_trigger.yaml
-# --------------------------------------------------------------------------------------
 
-# LOCALIZED
+
+
+# --------------------------------------------------------------------------------------
+# SECOND ATTEMPT (WORKS)
+# LOCALIZED TO SUBDIRECTORY BUT IS VERY NAIVE / STRICT ABOUT NAMING CONVENTION
 # ONLY ADD DUMMY FILE TO LOCAL APP SUB-DIRECTORY
-# REPO_ROOT="/home/ubuntu/aws_lambda"
 
 # create_dummy () {
 # cat << EOF > $1/k8s_manifests/argocd_dummy_trigger.yaml
@@ -53,54 +56,48 @@
 
 
 
+# --------------------------------------------------------------------------------------
+# FINAL ATTEMPT (WORKS)
+# LOCALIZED TO SUBDIRECTORY BUT IS FLEXIBLE re NAMING. STILL EXPECTS CERTAIN FOLDER STRUCTURE.
+# WARNING: SOLUTION MORE COMPLEX DUE TO USE OF 'xargs'
 
-# create_dummy() {
-# cat << EOF > $1/k8s_manifests/argocd_dummy_trigger.yaml
-# ---
-# apiVersion: v1
-# kind: ConfigMap
-# metadata:
-#   name: argocd-dummy-trigger-$2
-#   namespace: lambda
-# data:
-#   foo: "$(date)"
-# EOF
+# HIGH LEVEL FLOW:
+# 1) Get every staged file in the commit attempt.
+# 2) For each file:
+#    1) Extract root of filepath (i.e. 'apps/APPNAME')
+#    2) Extract app name, and convert underscore to dashes
+#    3) Update the manifest path for each root.
+#
+# NOTE:
+#  1) Logic is inefficient since it'll regenerate a dummy file n times rather than just once per
+#    folder. I'm ok with this since this logic can be executed quickly and means I dont need
+#    to make already-complex code (IMO) even more complex.
+#  2) Due to how xargs works, I had to separate the function into its own file and source it.
+#     However, 'source' doesn't work with sh, so I had to use '.' instead.
+#  3) Xargs command I used isn't entirely secure. Secure enough for my purposes however (and
+#     easier to understand / maintain).
 
-# git add $1/k8s_manifests/argocd_dummy_trigger.yaml
-# }
+# REFERENCES:
+#  - 'source' vs '.': https://askubuntu.com/questions/504546/error-message-source-not-found-when-running-a-script
+#  - underscore to hyphen: https://stackoverflow.com/questions/53672192/replace-hyphens-with-underscores-in-bash-script
+#  - multiple xarg commands / security: https://stackoverflow.com/questions/6958689/running-multiple-commands-with-xargs
+#  - git diff filename pattern match: https://superuser.com/questions/552617/execute-git-pre-commit-hook-only-if-files-in-certain-directory-modified
+#                                     https://stackoverflow.com/questions/2412450/git-pre-commit-hook-changed-added-files
 
-# Get every staged file
-# Cut down to the root
-# Get App name and convert underscore to dashes
-# Update the manifest path for each root.
 if [[ $(git diff --cached --quiet --diff-filter=ACMR -- "apps/*"; echo $?) == 1 ]]; then
 
-  echo "yes"
+  echo "Found modified app files."
 
-  # https://stackoverflow.com/questions/6958689/running-multiple-commands-with-xargs
-  # The way I've done it is not entirely secure, but much easier to maintain.
-  # Couldn't get local function to be callabe in xargs.
-  #  - Had to export to separate file and then source.
-  #  - But source doesn't work with xargs so had to use '.' instead.
+  # See notes above for explanation of logic and design
   git diff --cached --name-only --diff-filter=ACMR -- "apps/*" | \
   xargs -I % sh -c \
      'echo "$PWD";
-      # source "$PWD/.githooks/create_dummy";
       . "$PWD/.githooks/create_dummy";
-      export ROOT=$(echo % | cut -d/ -f 1-2);
-      export APP=$(echo % | cut -d/ -f 2-2 | tr "-" "_");
-      # env | grep APP;
-      export APP_PATH="$PWD/$ROOT";
-      env | grep APP_PATH;
-      create_dummy $APP_PATH $APP;'
+      export APP_ROOT=$(echo % | cut -d/ -f 1-2);
+      export APP_NAME=$(echo % | cut -d/ -f 2-2 | tr "-" "_");
+      export APP_PATH="$PWD/$APP_ROOT";
+      # env | grep APP_ROOT;
+      # env | grep APP_NAME;
+      # env | grep APP_PATH;
+      create_dummy $APP_PATH $APP_NAME;'
 fi
-
-
-    #  export ROOT=$(echo {"$arg"} | cut -d/ -f 1-2); \
-    #  echo "blah2"; \
-    #  APP=$(echo "$arg" | cut -d/ -f 2-2 | tr '-' '_'); \
-    #  echo "blah3"; \
-    #  PATH="$PWD/$ROOT"; \
-    #  echo "blah4"; \
-    #  echo "$PATH -- $APP"; \
-    #  $create_dummy "$PATH" "$APP";'
