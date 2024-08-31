@@ -3,9 +3,7 @@
 # --------------------------------------------------------------------------------------
 # FIRST ATTEMPT (WORKS)
 # TOP-LEVEL ARTIFCT -- FORCE ALL APPS TO CYCLE (assuming ArgoCD focused on /manifests)
-# Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigger
-# echo $(date) > manifests/trigger_argo_refresh3.yaml
-# git add manifests/trigger_argo_refresh2.yaml 
+# Update and add a file in the manifests folder to force ArgoCD Resource Hook to trigge
 
 # cat << EOF > manifests/argocd_dummy_trigger.yaml
 # ---
